@@ -1,0 +1,1 @@
+calcola il valore hash di questo file

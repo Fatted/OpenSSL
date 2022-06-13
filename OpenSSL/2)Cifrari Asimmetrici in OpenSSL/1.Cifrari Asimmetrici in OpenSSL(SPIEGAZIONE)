@@ -1,0 +1,170 @@
+Nei cifrari asimmetrici gli utenti non devono condividere la stessa chiave k ma ognuno di essi si genera una coppia di chiavi, chiave pubblica e chiave privata, che userà per la cifratura e la decifratura. Come dice il nome la chiave pubblica è resa pubblica a chiunque voglia cifrare un messaggio ad un utente mentre la chiave privata è segreta per ognui utente, quest'ultima verrè usata dall'utente che riceverà un messaggio cifrato con la sua chiave pubblica e la userà per decifrarlo.
+
+Come cifrario asimmetrico in OpenSSL useremo RSA.
+------------------------------------------------------------------------------------------------------------------
+OpenSSL
+
+Useremo i comandi genrsa ed rsa per generare,esaminare ed usare chiavi in rsa.
+Il comando rsautl per cifrare e firmare mediante rsa.
+
+Usiamo il comando genrsa per generare la coppia di chiavi:
+
+-openssl genrsa {options} {numbits}
+
+gli argomenti/parametri possono essere:
+{option}
+-> -des, -des3, -aes128, -aes192, -aes256...: Tipo di cifrario, lunghezza della chiave e modalità operativa
+-> -out file: Scrive in un file le chiavi generate
+-> -passout arg: Password usata per la cifratura delle chiavi
+-> -passin arg: Password usata per la decifratura delle chiavi
+
+{numbits}
+-> Numero di bit del modulo RSA, di default è 2048
+
+Realizziamo la nostra coppia di chiavi, contenente chiave pubblica e privata in RSA a 1024bit nel file chiaveprivataRSA.txt:
+
+openssl genrsa -aes128  -out chiaveprivataRSA.txt -passout pass:coppiachiavi 1024
+
+se il comando va a buon fine otteniamo il file contenente:
+-----BEGIN RSA PRIVATE KEY-----
+Proc-Type: 4,ENCRYPTED
+DEK-Info: AES-128-CBC,50138F15D91193E1E129FB5B155C2476
+
+0kEDjjedZdqSNL39opcFeZ442Le6Vaqj7cv06XNd8sPA+AVqbAWNs+GCDjCnUqBw
+mISEDOOiuKDpbvVnyNJd+so/jAbvhwDmRP2kg3nLeBPctfxS3qb5XWtoUbLOU41Z
+T0TUW8OBmdFzWiqBlQBXIrs6d8EHnC4CZyHWhnU09Htb4B6MFuNHyP9DQZLpHuIZ
+5HzfMyw8YV4L/iV0j8hQgdvt02HFg/Y4WVV+7OdXBZY20dn8njYJSemYdubqrRhU
+TDYjnYNKrp6bKhCavuLK4T4Kf0VczEPBQXvkGsixbcJbErN813JqLCpOWVKVFHUh
+5CeVc+f82Hty3FY7FZBrqIAl9tgR8VmSKQLXDoJZKOnB2FekLJZXdUav6K9L1iZK
+MiLi8Xz0dlmDOjGPMWPiY8U9SEQ8O3iigVOV0Na3hNwF771d/XrPAosMDoxU2A6k
+8IXEJ7q+rch9lVshy1X1Q9vPkHgmmlY1BiJSk+LfPm/hCgDCFDcYixOWQIjGlh5O
+oHCeMbXGc/Y67rTfoYWqJ7qFbqbdcuDasIVTYQP75ECH8t0TVpZlplKvMaSZMdXB
+B0I28I+y3TnEB7iVfmjyd2tCP3UqERNl/FgcyVShKH0tmJJIEjjqNYGjJpc8HXCc
+Xxo9QOGlAE6BJDvnw4oj01v90vQbhpxpaQEEM1YM6ZLE/JMU/GFbrCSXzRtBTlrO
+BG2aSFWBTfq1qs+xmdx19PaExq6B75JrUEbxMfpW60Y9x2sFf59uLDgQA4ySKYt1
+vH8Q/I3z6cmuZOtjnd3gpi1ZRwaerjQvtrtU9KOang8DpsTxZiRPkF+cPbAWzA1k
+-----END RSA PRIVATE KEY-----
+
+------------------------------------------------------------------------------------------------------------------
+
+Per vedere l'intero contenuto della chiave RSA espressa con la notazione PKCS#1 usiamo il seguente comando:
+
+openssl rsa -in chiaveprivataRSA.txt -text (chiederà la chiave)
+
+ed otteniamo il seguente risultato:
+
+RSA Private-Key: (1024 bit, 2 primes)
+modulus:
+    00:d3:ae:f3:2a:86:eb:78:12:7c:cf:92:51:c6:a5:
+    5d:5f:39:cf:09:95:22:f0:eb:80:35:2d:40:b6:02:
+    00:e1:c3:ea:b2:e7:bb:31:e3:2f:ac:b3:6d:50:6b:
+    f4:6f:d0:f5:88:31:66:63:7f:a0:03:6b:86:31:43:	MODULO N DI 1024BIT
+    99:31:50:a6:95:ea:db:9e:42:c4:71:0f:78:c8:ef:
+    ba:8b:9e:5e:da:34:2e:9b:fd:66:2d:1d:73:c3:ea:
+    70:35:95:aa:d9:43:2f:d8:f8:7e:80:42:2f:5b:84:
+    98:3d:a7:e9:c4:5f:0d:f7:70:25:38:71:a3:51:71:
+    a9:df:4c:cb:4e:a0:4c:c8:99
+publicExponent: 65537 (0x10001)				ESPONENTE PUBBLICO E
+privateExponent:
+    09:70:f5:21:81:71:01:22:f9:f4:1c:17:8f:9f:92:
+    81:8b:c7:83:2a:e6:ab:0e:25:e2:b9:48:f8:95:30:
+    4a:e1:7d:17:4b:a4:9a:be:02:43:56:a1:5a:83:e6:
+    1c:12:9a:d0:df:3b:2c:d6:e5:61:21:ab:93:88:eb:	ESPONENTE PRIVATO D
+    4d:3a:c6:a3:36:52:cb:15:e7:73:c3:0c:e7:8c:d9:
+    d5:c4:86:ce:ac:4d:17:5c:b0:cf:08:25:18:c1:bd:
+    f0:01:59:e2:03:ad:48:00:48:23:d7:ac:96:e4:b7:
+    27:c9:9d:0b:53:2d:e0:a8:43:aa:37:3c:8f:41:d1:
+    f4:1c:c1:39:d8:10:b6:81
+prime1:
+    00:f4:b5:42:3d:6a:9e:ac:42:85:c7:b5:66:16:ba:
+    8f:5b:fa:2d:f4:27:03:58:d2:b0:25:dc:bf:b6:1c:	NUMERO PRIMO P
+    73:3e:0a:c6:a3:ee:d3:9d:52:02:34:9e:17:c0:53:
+    0c:2e:cf:ea:de:fa:13:2e:04:c4:40:ae:c5:42:65:
+    96:84:7d:77:e9
+prime2:
+    00:dd:73:91:ff:59:26:82:55:20:3b:9a:c4:ce:f8:
+    5a:56:41:3f:06:2a:9b:1a:2f:51:5a:04:33:1c:6f:	NUMERO PRIMO Q
+    5c:dc:d4:e0:18:d1:86:4c:b8:57:02:33:61:d4:99:
+    2d:5a:43:7e:52:9b:78:63:2b:13:81:f9:9e:66:c4:
+    14:4e:62:0d:31
+exponent1:
+    00:92:80:c2:3b:8a:cd:9c:4b:e7:53:fd:22:35:91:
+    53:aa:b9:49:31:d6:f9:85:ff:fd:3d:6d:bf:c9:03:	dp = d mod (p – 1)
+    97:6b:19:80:7b:3c:cc:ac:6f:20:aa:e7:cb:48:75:
+    6f:e1:c6:d0:d2:d5:dd:0d:bc:04:d2:c4:cf:8c:44:
+    cd:ac:5c:81:a1
+exponent2:
+    36:10:81:14:56:2f:90:a2:37:bc:55:8c:b6:fa:eb:
+    13:23:da:bf:26:a7:b7:3c:d6:1f:a3:e6:d6:8a:59:	dq = d mod (q – 1)
+    a1:90:57:25:b8:01:91:b9:6f:84:9a:06:c8:60:9d:
+    31:ec:48:6a:e2:8a:01:ac:02:97:38:d9:f3:3c:eb:
+    b8:37:38:01
+coefficient:
+    00:da:ac:fa:57:35:7d:90:8b:47:31:d5:99:e1:af:
+    61:c4:d3:4f:d8:8f:1b:2f:63:1a:58:d8:e9:ff:bb:	q inv = q -1 mod p
+    ce:26:96:9f:d6:03:3f:3a:a7:f1:8c:d8:2f:cb:73:
+    81:88:78:5b:f3:4d:ad:3e:0c:b2:a7:d2:67:a8:71:
+    f0:ae:d7:56:1f
+writing RSA key
+-----BEGIN RSA PRIVATE KEY-----
+MIICXQIBAAKBgQDTrvMqhut4EnzPklHGpV1fOc8JlSLw64A1LUC2AgDhw+qy57sx
+4y+ss21Qa/Rv0PWIMWZjf6ADa4YxQ5kxUKaV6tueQsRxD3jI77qLnl7aNC6b/WYt
+HXPD6nA1larZQy/Y+H6AQi9bhJg9p+nEXw33cCU4caNRcanfTMtOoEzImQIDAQAB
+AoGACXD1IYFxASL59BwXj5+SgYvHgyrmqw4l4rlI+JUwSuF9F0ukmr4CQ1ahWoPm
+HBKa0N87LNblYSGrk4jrTTrGozZSyxXnc8MM54zZ1cSGzqxNF1ywzwglGMG98AFZ
+4gOtSABII9esluS3J8mdC1Mt4KhDqjc8j0HR9BzBOdgQtoECQQD0tUI9ap6sQoXH	Codifica PEM della chiave privata RSA
+tWYWuo9b+i30JwNY0rAl3L+2HHM+Csaj7tOdUgI0nhfAUwwuz+re+hMuBMRArsVC
+ZZaEfXfpAkEA3XOR/1kmglUgO5rEzvhaVkE/BiqbGi9RWgQzHG9c3NTgGNGGTLhX
+AjNh1JktWkN+Upt4YysTgfmeZsQUTmINMQJBAJKAwjuKzZxL51P9IjWRU6q5STHW
++YX//T1tv8kDl2sZgHs8zKxvIKrny0h1b+HG0NLV3Q28BNLEz4xEzaxcgaECQDYQ
+gRRWL5CiN7xVjLb66xMj2r8mp7c81h+j5taKWaGQVyW4AZG5b4SaBshgnTHsSGri
+igGsApc42fM867g3OAECQQDarPpXNX2Qi0cx1Znhr2HE00/YjxsvYxpY2On/u84m
+lp/WAz86p/GM2C/Lc4GIeFvzTa0+DLKn0meocfCu11Yf
+-----END RSA PRIVATE KEY-----
+
+------------------------------------------------------------------------------------------------------------------
+
+Adesso dalla chiave privata presente nel file chiaveprivataRSA.txt dobbiamo estrarre la nostra chiave pubblica che possiamo rendere pubblica a chiunque voglia cifrare un messagio per noi:
+
+openssl rsa -pubout -in chiaveprivataRSA.txt -out chiavepubblicaRSA.txt -passin pass:coppiachiavi
+
+se il comando va a buon fine otteniamo il file contenente la nostra chiave pubblica
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDTrvMqhut4EnzPklHGpV1fOc8J
+lSLw64A1LUC2AgDhw+qy57sx4y+ss21Qa/Rv0PWIMWZjf6ADa4YxQ5kxUKaV6tue
+QsRxD3jI77qLnl7aNC6b/WYtHXPD6nA1larZQy/Y+H6AQi9bhJg9p+nEXw33cCU4
+caNRcanfTMtOoEzImQIDAQAB
+-----END PUBLIC KEY-----
+
+Nel comando è presenta l'argomento -pubout che serve per estrapolare la chiave pubblica e viene usato ogni volta che si vuole estrarre la chiave pubblica.
+Per leggere il contenuto del file della chiave pubblica usiamo il seguente comando:
+In questo caso andiamo ad usare il comando -pubin per vedere la chiave pubblica.
+
+openssl rsa -in chiavepubblicaRSA.txt -pubin -text
+
+------------------------------------------------------------------------------------------------------------------
+
+Dopo aver realizzato la chiave privata ed aver estratto la chiave pubblica possiamo usarle per cifrare e decifrare i messaggi, il comando che viene usato per la cifratura e la decifratura è rsautl:
+
+openssl rsautl {options}
+
+gli argomenti/parametri possono essere:
+-> -in file: File di input
+-> -out file: Scrive in un file le chiavi generate
+-> -encrypt: Cifra con la chiave pubblica
+-> -decrypt: Decifra con la chiave privata
+-> -sign: Firma con la chiave privata
+-> -verify: Verifica con la chiave pubblica
+-> -inkey: Chiave presa in input
+-> -passin arg: Sorgente da cui deve essere letta la password
+-> -pubin: Specifica che l’input è una chiave pubblica RSA
+
+Andiamo a realizzare il nostro file di testo che conterrà il messaggio M che deve essere cifrato, il file è cifrainrsa.txt contenente "Questo testo verrà cifrato con RSA". Effettuiamo la cifratura usando come chiave pubblica il contenuto del file chiavepubblicaRSA.txt:
+
+openssl rsautl -encrypt -pubin -inkey chiavepubblicaRSA.txt -in cifrainrsa.txt -out testocifratoinrsa.txt
+
+Se il comando va a buon fine otteniamo il file testocifratoinrsa.txt contenente il messaggio cifrato con la chiave pubblica, il file conterrà:"렗휆戀ﻆ⚰楼ܮ弑㎌팒塞ᔫ䉷௮뙱⋐퐝砹徑浘煀五༐꫘滁ｰ頂럽ㅾꚰ뮋颮罢鄊⯵ᝑ흨㦬そ᯹2㔫⎺䱴䜼᯳௩尷ꄂꊩ緞厳옊⌾䰷". Ovviamente chi riceverà questo messaggio riuscirà a leggerlo facendo la decifratura con la sua chiave privata, attraverso il seguente comando:
+
+openssl rsautl -decrypt -inkey chiaveprivataRSA.txt -in testocifratoinrsa.txt -passin pass:coppiachiavi
+
+Come si può notare quando viene effettuata la decifratura si va ad indicare la password che viene usata per generare la chiave privata.

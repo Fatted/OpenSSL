@@ -1,0 +1,32 @@
+OpenSSL mette a disposizione il comando rand per generare byte pseudocasuali, per potarli usare nella generazione delle chiavi o per le firme digitali.
+
+openssl rand {option} {numbyte}
+{option}
+
+-> -rand file(s): File usati come seme per il generatore
+-> -out file: File su cui scrivere i dati generati, che altrimenti verrebbero scritti sullo standard output
+-> -base64: I dati generati sono codificati in formato base64
+-> -hex: I dati generati sono codificati in formato esadecimale
+
+{numbyte}
+->numbyte: Numero di byte che si intende generare
+------------------------------------------------------------------------------------------------------------------
+OpenSSL
+
+Per generare valori pseudocasuali viene usato il seguente comando:
+
+openssl rand -out valoripseudocasuali.txt 12 
+
+Viene generato un file contenente valori 12byte di valori pseudocasuali, in questo caso il file valoripseudocasiali.txt contenente:
+"^{ØjB·É ê"
+
+Possiamo realizzare anche valori pseudocasuali in base64 aggiungendo il comanda -base64:
+
+openssl rand -out pseudocasialibase64.txt -base64 12
+
+Otteniamo il file pseudocasialibase64.txt contenente "8+j2MgLIfqkrpvHq" come possiamo notare però la lunghezza della stringa è di 16 caratteri e non di 12 questo perche i dati generati in base64 sono sempre multipli di 4, se vogliamo avere 12 byte al posto di 16 byte dobbiamo effettuare un taglio:
+
+openssl rand -out base64tagliato.txt 47 | cut -c1-47
+
+Così otteniamo il file base64tagliato.txt contenente 47bytes:
+"ik7u23o8QGhKFQXCbxTtdQ2BpE5bND3bzodg9irnLJjjyCulfuNteTzu54W13Y4="

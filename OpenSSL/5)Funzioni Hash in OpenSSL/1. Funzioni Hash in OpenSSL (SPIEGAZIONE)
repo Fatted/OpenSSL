@@ -1,0 +1,35 @@
+Le funzioni hash prendono in input una sequenza arbitraria/finita di bit e restituiscono b bit, il valore HASH è una rappresentazione non conforme e non falsificabile del messaggio M.
+Openssl mette a disposizione svariate funzioni hash, che è possibile scoprire attraverso il comando
+
+openssl list --digest-commands
+
+Il comando figest permette di accedere alle funzioni hash in OpenSSL, l'hash calcolato viene mostrato a video in forma esadecimale a meno che non si specifica un file di output.
+
+-openssl dgst {args} {file}
+{args}
+-> -digest: Funzione hash da usare per il calcolo del message digest,può essere uno degli algoritmi mostrati dal comando
+
+-> -out filename:File in cui scrivere l’output della funzione. Altrimenti l’output viene scritto sullo standard output
+
+-> -hmac key: Crea un hashed MAC usando una determinata chiave
+
+{file}
+-> -out file: file dove stampare il valore hash calcolato
+
+------------------------------------------------------------------------------------------------------------------
+OpenSSL
+
+Dopo aver realizzato il file filecalcolahash.txt contenente "calcola il valore hash di questo file" andiamo ad usare il comando per calcolare il valore hash del file:
+
+openssl dgst -sha1 -out hashfilecalcolato.txt filecalcolahash.txt
+
+Dopo aver eseguito i lcomando viene realizzato un file hashfilecalcolato.txt contenente il valore hash:
+SHA1(filecalcolahash.txt)= d53865c644c3807515ca7a30017c62f6d4f543b6
+
+Possiamo calcolare anche HMAC del filecalcolahash.txt attraverso il seguente comando:
+
+openssl dgst -sha512 -out HMACcalcolato.txt -hmac valoreusatocomechiave filecalcolahash.txt
+
+Dopo il comando -hmac possiao indicare un valore alfanumerica che verrà usato come chiave per la codifica,io ho usato valoreusatocomechiave ma potevo mettere qualsiasi valore ad esempio P1pp0Baud0; il comando restituisce un file HMACcalcolato.txt contenente:
+
+HMAC-SHA512(filecalcolahash.txt)= 2873e592f427e00b74127ad7075cd6c843fb71b16b6a97ba9a3c4d81a099712c6eef16682bf8478a10b2e0c1c0ebb109d9b708995735ac2a2755e0687bd74909

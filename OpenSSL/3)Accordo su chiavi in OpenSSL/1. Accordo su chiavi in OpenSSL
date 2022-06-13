@@ -1,0 +1,261 @@
+L'accordo su chiavi si basa sulla scelta della chiave da usare per la cifratura e la decifratura, in questo caso chi cifra e decifra userà un'unica chiave K. La tecnica principale che viene usata e quella di Diffie-Hellman.
+Il parametro in OpenSSL che viene usato per usare Diffie'Hellman è dhparam:
+
+openssl dhparam {options} {numbits}
+
+gli argomenti/parametri possono essere:
+{option}
+-> -inform arg: Formato di input, dove arg può essere DER o PEM
+-> -outform arg: Formato di output, dove arg può essere DER o PEM
+-> -in arg: Dove arg è il file di input
+-> -out arg: Dove arg è il file di output
+-> -text: Stampa i parametri Diffie-Hellman in formato testuale
+-> -2: Genera i parametri usando 2 come valore del generatore
+-> -5: Genera i parametri usando 5 come valore del generatore
+
+{numbits}
+-> Numero di bit del modulo RSA, di default è 2048
+
+------------------------------------------------------------------------------------------------------------------
+OpenSSL
+
+Il comando che viene usato per generare i parametri pubblici è:
+
+openssl dhparam -out parametridh.txt -2
+
+se il comando va a buon fine otteniamo il file parametridh.txt contenente:
+"MIIBCAKCAQEAl69GyHfp3NRA6YVFWP7GqqtbAe9lIV2PP6Nx2yYQOE6sxohnFctz
+bvUjcK8NuKxfh2V379V9cOxsLQ4YG1oXTnC3+Fb64kuV0R5w62m+3UayR+RsYW3M
+Z7FnpET/ZNGTSXD7iJqyXoR2jDjR0J1MpiarZilfuax8nOzUFpcODb6PS+tp2nVO
+7gtcGthkroOwwaDDIVCRnQB4ZNgNO/JZezMZLv6mkUaP0svlxsMzS6dUbkQin8Jd
+b0UtExMeQ9lel5nFiB2A9HIDLOrLE59MGYnduXQZyL0GvuyrleYbCPI5AQTEyeXq
+iV4s6Nn9MVbbpFsFdGk2AnhIdT6abpMFywIBAg=="
+
+Possiamo aprire il seguente file usando il comando -text in modo tale da vedere tutte le caratteristiche del file:
+DH Parameters: (2048 bit)
+        prime:
+            00:97:af:46:c8:77:e9:dc:d4:40:e9:85:45:58:fe:
+            c6:aa:ab:5b:01:ef:65:21:5d:8f:3f:a3:71:db:26:
+            10:38:4e:ac:c6:88:67:15:cb:73:6e:f5:23:70:af:
+            0d:b8:ac:5f:87:65:77:ef:d5:7d:70:ec:6c:2d:0e:
+            18:1b:5a:17:4e:70:b7:f8:56:fa:e2:4b:95:d1:1e:
+            70:eb:69:be:dd:46:b2:47:e4:6c:61:6d:cc:67:b1:
+            67:a4:44:ff:64:d1:93:49:70:fb:88:9a:b2:5e:84:
+            76:8c:38:d1:d0:9d:4c:a6:26:ab:66:29:5f:b9:ac:	P
+            7c:9c:ec:d4:16:97:0e:0d:be:8f:4b:eb:69:da:75:
+            4e:ee:0b:5c:1a:d8:64:ae:83:b0:c1:a0:c3:21:50:
+            91:9d:00:78:64:d8:0d:3b:f2:59:7b:33:19:2e:fe:
+            a6:91:46:8f:d2:cb:e5:c6:c3:33:4b:a7:54:6e:44:
+            22:9f:c2:5d:6f:45:2d:13:13:1e:43:d9:5e:97:99:
+            c5:88:1d:80:f4:72:03:2c:ea:cb:13:9f:4c:19:89:
+            dd:b9:74:19:c8:bd:06:be:ec:ab:95:e6:1b:08:f2:
+            39:01:04:c4:c9:e5:ea:89:5e:2c:e8:d9:fd:31:56:
+            db:a4:5b:05:74:69:36:02:78:48:75:3e:9a:6e:93:
+            05:cb	
+        generator: 2 (0x2)					Q
+-----BEGIN DH PARAMETERS-----
+MIIBCAKCAQEAl69GyHfp3NRA6YVFWP7GqqtbAe9lIV2PP6Nx2yYQOE6sxohnFctz
+bvUjcK8NuKxfh2V379V9cOxsLQ4YG1oXTnC3+Fb64kuV0R5w62m+3UayR+RsYW3M
+Z7FnpET/ZNGTSXD7iJqyXoR2jDjR0J1MpiarZilfuax8nOzUFpcODb6PS+tp2nVO
+7gtcGthkroOwwaDDIVCRnQB4ZNgNO/JZezMZLv6mkUaP0svlxsMzS6dUbkQin8Jd
+b0UtExMeQ9lel5nFiB2A9HIDLOrLE59MGYnduXQZyL0GvuyrleYbCPI5AQTEyeXq
+iV4s6Nn9MVbbpFsFdGk2AnhIdT6abpMFywIBAg==
+-----END DH PARAMETERS-----
+
+Dopo aver generato i parametri di DH possiamo usarli per generarci la nostra coppia di chiavi pubblica e privata che poi useremo per la cifratura e la decifratura:
+
+openssl genpkey -paramfile parametridh.txt -out chiaveDH1.txt
+								
+openssl genpkey -paramfile parametridh.txt -out chiaveDH2.txt
+
+Il comando comprende:
+-genpkey: usato per generare la key
+-paramfile: file usato come parametro per generare la chiave, ovvero il file creato con DH
+Il comando crea un file in output contenente:
+"MIICJgIBADCCARcGCSqGSIb3DQEDATCCAQgCggEBAJevRsh36dzUQOmFRVj+xqqr
+WwHvZSFdjz+jcdsmEDhOrMaIZxXLc271I3CvDbisX4dld+/VfXDsbC0OGBtaF05w
+t/hW+uJLldEecOtpvt1GskfkbGFtzGexZ6RE/2TRk0lw+4iasl6Edow40dCdTKYm
+q2YpX7msfJzs1BaXDg2+j0vradp1Tu4LXBrYZK6DsMGgwyFQkZ0AeGTYDTvyWXsz
+GS7+ppFGj9LL5cbDM0unVG5EIp/CXW9FLRMTHkPZXpeZxYgdgPRyAyzqyxOfTBmJ
+3bl0Gci9Br7sq5XmGwjyOQEExMnl6oleLOjZ/TFW26RbBXRpNgJ4SHU+mm6TBcsC
+AQIEggEEAoIBAFfqAojP6PN6bnDw93sFH4hQV3tddvAFO/Wf8KkvRsu6rClX9NYK
+zjEozO+JyW+uChmlj5c/w56rCwzJWJc0IRL/MDlpKgRN10xtM4GHqudouu43Fu11
+V9vXunry+ANiffz+1OvDleXKd4y380+RXyzD/q5TDLJc83M0etmmRC7nu9Alu5tD
+ZPf8DGRhJRu9TokogBT0qikM25kYR5nIJLYo6wZ6Mg2AOgMiSeuFo1UO1T5hvtnS
+FtMDFmk9L2YU5FaRX20Ewt+QMSoy5xqZbPif3bWz3fNVgb4gt/97lHsvyB9IWBcb
+Ysvh2IEQSntZvO3lzfJJAXgoNljWH4C6zzQ="
+
+Possiamo vedere le specifiche del file usando il comando -text:
+
+openssl pkey -in chiaveDH1.txt -text
+
+openssl pkey -in chiaveDH2.txt -text
+
+Ottenendo a schermo il seguente risultato
+-----BEGIN PRIVATE KEY-----
+MIICJgIBADCCARcGCSqGSIb3DQEDATCCAQgCggEBAJevRsh36dzUQOmFRVj+xqqr
+WwHvZSFdjz+jcdsmEDhOrMaIZxXLc271I3CvDbisX4dld+/VfXDsbC0OGBtaF05w
+t/hW+uJLldEecOtpvt1GskfkbGFtzGexZ6RE/2TRk0lw+4iasl6Edow40dCdTKYm
+q2YpX7msfJzs1BaXDg2+j0vradp1Tu4LXBrYZK6DsMGgwyFQkZ0AeGTYDTvyWXsz
+GS7+ppFGj9LL5cbDM0unVG5EIp/CXW9FLRMTHkPZXpeZxYgdgPRyAyzqyxOfTBmJ
+3bl0Gci9Br7sq5XmGwjyOQEExMnl6oleLOjZ/TFW26RbBXRpNgJ4SHU+mm6TBcsC
+AQIEggEEAoIBAFfqAojP6PN6bnDw93sFH4hQV3tddvAFO/Wf8KkvRsu6rClX9NYK
+zjEozO+JyW+uChmlj5c/w56rCwzJWJc0IRL/MDlpKgRN10xtM4GHqudouu43Fu11
+V9vXunry+ANiffz+1OvDleXKd4y380+RXyzD/q5TDLJc83M0etmmRC7nu9Alu5tD
+ZPf8DGRhJRu9TokogBT0qikM25kYR5nIJLYo6wZ6Mg2AOgMiSeuFo1UO1T5hvtnS
+FtMDFmk9L2YU5FaRX20Ewt+QMSoy5xqZbPif3bWz3fNVgb4gt/97lHsvyB9IWBcb
+Ysvh2IEQSntZvO3lzfJJAXgoNljWH4C6zzQ=
+-----END PRIVATE KEY-----
+DH Private-Key: (2048 bit)
+    private-key:
+        57:ea:02:88:cf:e8:f3:7a:6e:70:f0:f7:7b:05:1f:
+        88:50:57:7b:5d:76:f0:05:3b:f5:9f:f0:a9:2f:46:
+        cb:ba:ac:29:57:f4:d6:0a:ce:31:28:cc:ef:89:c9:
+        6f:ae:0a:19:a5:8f:97:3f:c3:9e:ab:0b:0c:c9:58:
+        97:34:21:12:ff:30:39:69:2a:04:4d:d7:4c:6d:33:
+        81:87:aa:e7:68:ba:ee:37:16:ed:75:57:db:d7:ba:
+        7a:f2:f8:03:62:7d:fc:fe:d4:eb:c3:95:e5:ca:77:
+        8c:b7:f3:4f:91:5f:2c:c3:fe:ae:53:0c:b2:5c:f3:		CHIAVE PRIVATA X
+        73:34:7a:d9:a6:44:2e:e7:bb:d0:25:bb:9b:43:64:
+        f7:fc:0c:64:61:25:1b:bd:4e:89:28:80:14:f4:aa:
+        29:0c:db:99:18:47:99:c8:24:b6:28:eb:06:7a:32:
+        0d:80:3a:03:22:49:eb:85:a3:55:0e:d5:3e:61:be:
+        d9:d2:16:d3:03:16:69:3d:2f:66:14:e4:56:91:5f:
+        6d:04:c2:df:90:31:2a:32:e7:1a:99:6c:f8:9f:dd:
+        b5:b3:dd:f3:55:81:be:20:b7:ff:7b:94:7b:2f:c8:
+        1f:48:58:17:1b:62:cb:e1:d8:81:10:4a:7b:59:bc:
+        ed:e5:cd:f2:49:01:78:28:36:58:d6:1f:80:ba:cf:
+        34
+    public-key:
+        77:f9:81:64:c3:dd:4c:5f:0c:fd:a0:e5:09:5e:1c:
+        3d:93:73:ec:24:ea:63:ed:53:d6:42:3f:a4:04:6e:
+        e5:22:7a:48:62:9e:c2:54:d4:51:0e:b7:ee:b0:71:
+        19:fd:1d:cb:46:b6:de:3b:18:70:f5:c9:bc:2f:2d:
+        a4:79:2d:83:6f:f4:35:09:36:19:05:b2:2c:b1:f0:		CHIAVE PUBBLICA G^x mod p
+        07:30:e4:cb:2d:0f:cc:2b:35:f6:82:9f:64:51:e0:
+        21:b4:74:de:5f:bd:ae:a6:ae:2e:5d:95:23:b2:1b:
+        82:c9:35:84:b8:09:88:a6:6a:38:26:3a:30:bc:b5:
+        9f:a7:54:60:92:86:10:62:0e:f5:3f:3e:3b:fa:bf:
+        96:3e:6e:41:f5:0c:84:3e:2b:7a:e8:41:4d:8c:1d:
+        4a:06:92:c1:ea:86:3c:fe:03:12:ff:3d:9b:bd:36:
+        f3:04:bf:b1:f0:d8:79:f5:20:9c:4b:c0:de:9a:5d:
+        be:94:f3:2f:c8:c5:0f:6c:e4:1e:46:c2:29:01:4a:
+        83:48:3a:f4:f3:e0:3b:74:a3:20:1a:8a:93:38:80:
+        2c:26:78:97:c8:94:54:fe:fc:7e:9c:98:bf:6e:7d:
+        3f:df:bf:4c:32:81:d4:ad:fa:e8:fe:df:26:f6:6c:
+        d1:7e:3b:0e:e3:55:27:68:13:1b:82:26:9c:86:3b:
+        42
+    prime:
+        00:97:af:46:c8:77:e9:dc:d4:40:e9:85:45:58:fe:
+        c6:aa:ab:5b:01:ef:65:21:5d:8f:3f:a3:71:db:26:
+        10:38:4e:ac:c6:88:67:15:cb:73:6e:f5:23:70:af:
+        0d:b8:ac:5f:87:65:77:ef:d5:7d:70:ec:6c:2d:0e:
+        18:1b:5a:17:4e:70:b7:f8:56:fa:e2:4b:95:d1:1e:
+        70:eb:69:be:dd:46:b2:47:e4:6c:61:6d:cc:67:b1:		NUMERO PRIMO P
+        67:a4:44:ff:64:d1:93:49:70:fb:88:9a:b2:5e:84:
+        76:8c:38:d1:d0:9d:4c:a6:26:ab:66:29:5f:b9:ac:
+        7c:9c:ec:d4:16:97:0e:0d:be:8f:4b:eb:69:da:75:
+        4e:ee:0b:5c:1a:d8:64:ae:83:b0:c1:a0:c3:21:50:
+        91:9d:00:78:64:d8:0d:3b:f2:59:7b:33:19:2e:fe:
+        a6:91:46:8f:d2:cb:e5:c6:c3:33:4b:a7:54:6e:44:
+        22:9f:c2:5d:6f:45:2d:13:13:1e:43:d9:5e:97:99:
+        c5:88:1d:80:f4:72:03:2c:ea:cb:13:9f:4c:19:89:
+        dd:b9:74:19:c8:bd:06:be:ec:ab:95:e6:1b:08:f2:
+        39:01:04:c4:c9:e5:ea:89:5e:2c:e8:d9:fd:31:56:
+        db:a4:5b:05:74:69:36:02:78:48:75:3e:9a:6e:93:
+        05:cb
+    generator: 2 (0x2)						GENERATORE 
+
+Il file chiaveDH1.txt contiene la chiave privata dell'utente che userà per decifrare il messaggio, per generarsi la chiave pubblica da quella privata bisogna eseguire il seguente comando:
+
+openssl pkey -in chiaveDH1.txt -pubout -out chiavepubblicaDH1.txt
+
+openssl pkey -in chiaveDH1.txt -pubout -out chiavepubblicaDH2.txt
+
+Otteniamo un file contenente la chiave pubblica dove il suo contenuto è:
+"MIICJDCCARcGCSqGSIb3DQEDATCCAQgCggEBAJevRsh36dzUQOmFRVj+xqqrWwHv
+ZSFdjz+jcdsmEDhOrMaIZxXLc271I3CvDbisX4dld+/VfXDsbC0OGBtaF05wt/hW
++uJLldEecOtpvt1GskfkbGFtzGexZ6RE/2TRk0lw+4iasl6Edow40dCdTKYmq2Yp
+X7msfJzs1BaXDg2+j0vradp1Tu4LXBrYZK6DsMGgwyFQkZ0AeGTYDTvyWXszGS7+
+ppFGj9LL5cbDM0unVG5EIp/CXW9FLRMTHkPZXpeZxYgdgPRyAyzqyxOfTBmJ3bl0
+Gci9Br7sq5XmGwjyOQEExMnl6oleLOjZ/TFW26RbBXRpNgJ4SHU+mm6TBcsCAQID
+ggEFAAKCAQB3+YFkw91MXwz9oOUJXhw9k3PsJOpj7VPWQj+kBG7lInpIYp7CVNRR
+DrfusHEZ/R3LRrbeOxhw9cm8Ly2keS2Db/Q1CTYZBbIssfAHMOTLLQ/MKzX2gp9k
+UeAhtHTeX72upq4uXZUjshuCyTWEuAmIpmo4JjowvLWfp1RgkoYQYg71Pz47+r+W
+Pm5B9QyEPit66EFNjB1KBpLB6oY8/gMS/z2bvTbzBL+x8Nh59SCcS8Deml2+lPMv
+yMUPbOQeRsIpAUqDSDr08+A7dKMgGoqTOIAsJniXyJRU/vx+nJi/bn0/379MMoHU
+rfro/t8m9mzRfjsO41UnaBMbgiachjtC"
+
+Andando ad ottenere maggiorni informazioni con il comando -text possiamo notare che nella chiave pubblica manca il valore X:
+
+openssl pkey -in chiavepubblicaDH1.txt -text -pubin
+
+openssl pkey -in chiavepubblicaDH2.txt -text -pubin
+
+-----BEGIN PUBLIC KEY-----
+MIICJDCCARcGCSqGSIb3DQEDATCCAQgCggEBAJevRsh36dzUQOmFRVj+xqqrWwHv
+ZSFdjz+jcdsmEDhOrMaIZxXLc271I3CvDbisX4dld+/VfXDsbC0OGBtaF05wt/hW
++uJLldEecOtpvt1GskfkbGFtzGexZ6RE/2TRk0lw+4iasl6Edow40dCdTKYmq2Yp
+X7msfJzs1BaXDg2+j0vradp1Tu4LXBrYZK6DsMGgwyFQkZ0AeGTYDTvyWXszGS7+
+ppFGj9LL5cbDM0unVG5EIp/CXW9FLRMTHkPZXpeZxYgdgPRyAyzqyxOfTBmJ3bl0
+Gci9Br7sq5XmGwjyOQEExMnl6oleLOjZ/TFW26RbBXRpNgJ4SHU+mm6TBcsCAQID
+ggEFAAKCAQB3+YFkw91MXwz9oOUJXhw9k3PsJOpj7VPWQj+kBG7lInpIYp7CVNRR
+DrfusHEZ/R3LRrbeOxhw9cm8Ly2keS2Db/Q1CTYZBbIssfAHMOTLLQ/MKzX2gp9k
+UeAhtHTeX72upq4uXZUjshuCyTWEuAmIpmo4JjowvLWfp1RgkoYQYg71Pz47+r+W
+Pm5B9QyEPit66EFNjB1KBpLB6oY8/gMS/z2bvTbzBL+x8Nh59SCcS8Deml2+lPMv
+yMUPbOQeRsIpAUqDSDr08+A7dKMgGoqTOIAsJniXyJRU/vx+nJi/bn0/379MMoHU
+rfro/t8m9mzRfjsO41UnaBMbgiachjtC
+-----END PUBLIC KEY-----
+DH Public-Key: (2048 bit)
+    public-key:
+        77:f9:81:64:c3:dd:4c:5f:0c:fd:a0:e5:09:5e:1c:
+        3d:93:73:ec:24:ea:63:ed:53:d6:42:3f:a4:04:6e:
+        e5:22:7a:48:62:9e:c2:54:d4:51:0e:b7:ee:b0:71:
+        19:fd:1d:cb:46:b6:de:3b:18:70:f5:c9:bc:2f:2d:
+        a4:79:2d:83:6f:f4:35:09:36:19:05:b2:2c:b1:f0:
+        07:30:e4:cb:2d:0f:cc:2b:35:f6:82:9f:64:51:e0:
+        21:b4:74:de:5f:bd:ae:a6:ae:2e:5d:95:23:b2:1b:
+        82:c9:35:84:b8:09:88:a6:6a:38:26:3a:30:bc:b5:
+        9f:a7:54:60:92:86:10:62:0e:f5:3f:3e:3b:fa:bf:
+        96:3e:6e:41:f5:0c:84:3e:2b:7a:e8:41:4d:8c:1d:
+        4a:06:92:c1:ea:86:3c:fe:03:12:ff:3d:9b:bd:36:
+        f3:04:bf:b1:f0:d8:79:f5:20:9c:4b:c0:de:9a:5d:
+        be:94:f3:2f:c8:c5:0f:6c:e4:1e:46:c2:29:01:4a:
+        83:48:3a:f4:f3:e0:3b:74:a3:20:1a:8a:93:38:80:
+        2c:26:78:97:c8:94:54:fe:fc:7e:9c:98:bf:6e:7d:
+        3f:df:bf:4c:32:81:d4:ad:fa:e8:fe:df:26:f6:6c:
+        d1:7e:3b:0e:e3:55:27:68:13:1b:82:26:9c:86:3b:
+        42
+    prime:
+        00:97:af:46:c8:77:e9:dc:d4:40:e9:85:45:58:fe:
+        c6:aa:ab:5b:01:ef:65:21:5d:8f:3f:a3:71:db:26:
+        10:38:4e:ac:c6:88:67:15:cb:73:6e:f5:23:70:af:
+        0d:b8:ac:5f:87:65:77:ef:d5:7d:70:ec:6c:2d:0e:
+        18:1b:5a:17:4e:70:b7:f8:56:fa:e2:4b:95:d1:1e:
+        70:eb:69:be:dd:46:b2:47:e4:6c:61:6d:cc:67:b1:
+        67:a4:44:ff:64:d1:93:49:70:fb:88:9a:b2:5e:84:
+        76:8c:38:d1:d0:9d:4c:a6:26:ab:66:29:5f:b9:ac:
+        7c:9c:ec:d4:16:97:0e:0d:be:8f:4b:eb:69:da:75:
+        4e:ee:0b:5c:1a:d8:64:ae:83:b0:c1:a0:c3:21:50:
+        91:9d:00:78:64:d8:0d:3b:f2:59:7b:33:19:2e:fe:
+        a6:91:46:8f:d2:cb:e5:c6:c3:33:4b:a7:54:6e:44:
+        22:9f:c2:5d:6f:45:2d:13:13:1e:43:d9:5e:97:99:
+        c5:88:1d:80:f4:72:03:2c:ea:cb:13:9f:4c:19:89:
+        dd:b9:74:19:c8:bd:06:be:ec:ab:95:e6:1b:08:f2:
+        39:01:04:c4:c9:e5:ea:89:5e:2c:e8:d9:fd:31:56:
+        db:a4:5b:05:74:69:36:02:78:48:75:3e:9a:6e:93:
+        05:cb
+    generator: 2 (0x2)
+
+Dopo aver ottenuto le due chiave private e pubbliche possiamo realizzare la chiave condivisa che useranno i due utenti attraverso i comandi:
+
+openssl pkeyutl -derive -inkey chiaveDH1.txt -peerkey chiavepubblicaDH2.txt -out segreto1.txt
+
+openssl pkeyutl -derive -inkey chiaveDH2.txt -peerkey chiavepubblicaDH1.txt -out segreto2.txt
+
+Ora i due file segreto1.txt e segreto2.txt avranno la stessa chiave condivisa, infatti il valore al suo interno + uguale! Per esserne sicuri andiamo a comparare i due file con il comando:
+
+cmp -b segreto1.txt segreto2.txt
+
+se non viene stampato nulla in output allora i due file sono uguali!
+

@@ -1,0 +1,134 @@
+Nelle firme digitali ci sono i due utente che hanno una coppia di chiavi, pubblica e privata che usano per ottenre e controllare la firma. Supponiamo ci siano due utenti, i famosi Bob ed Alice dove alice vuole inviare a Bob un messaggio M firmato, Alice avendo la chiave privata si genera la firma attraverso una funzione che prende in input il messaggio M ed la sua chiave privata ed ottiene la firma F, manda a Bob sia la firma F e il messaggio M e Bob attraverso una funzione che prende in input la firma F, il messaggio M e la chiave pubblica di alice controlla l'autenticità.
+
+In OpenSSL usiamo RSA per realizzare le firme digitali, ovviamente prima verrà realizzata la coppia di chiavi pubblica e privata che ci permetterà di ottenere la firma F e la verifica di F.
+
+------------------------------------------------------------------------------------------------------------------
+OpenSSL
+
+Per le firme digitali useremo il comando rsautl
+
+openssl rsautl {options}
+
+gli argomenti/parametri possono essere:
+-> -in file: File di input
+-> -out file: Scrive in un file le chiavi generate
+-> -encrypt: Cifra con la chiave pubblica	*
+-> -decrypt: Decifra con la chiave privata	*
+-> -sign: Firma con la chiave privata		*
+-> -verify: Verifica con la chiave pubblica	*
+-> -inkey: Chiave presa in input
+-> -passin arg: Sorgente da cui deve essere letta la password
+-> -pubin: Specifica che l’input è una chiave pubblica RSA
+
+Per prima cosa realizziamo il file filedafirmare.txt contenente il seguente testo "firma questo documento con RSA",dopodichè andiamo a realizzare la coppia di chiavi (visto nella lezione cifrari asimmetrici) quindi eseguiamo:
+
+openssl genrsa -aes-256-cbc -out rsaprivatekey.txt -passout pass:coppiachiavi 1024
+
+openssl rsa -pubout -in rsaprivatekey.txt -out rsapubblickey.txt -passin pass:coppiachiavi
+------------------------------------------------------------------------------------------------------------------
+Dopo esserci generato la coppia di chiavi passiamo alla firma del file M:
+
+openssl rsautl -sign -inkey rsaprivatekey.txt -in filedafirmare.txt -out firmadeldocumento.txt
+
+Se il comando va a buon fine otteniamo il file firmadeldocumento.txt contenente:"
+<¯Õ�dP é;´gFkÑödGÓûEízA5(¥Í¨¶Ü6Bv)/�aQ~)»ÔµÕyöæÚÜ¼AÛ^hóBuìQÎ\.>ka(fxç¼²íæËK(AF@ïßcx(¬ñýÓÚ³Ë+¾­¤"
+
+Ora per effettuare la verifica viene eseguito il comando contenente il -verify usando la chiave pubblica:
+
+openssl rsautl -verify -pubin -inkey rsapubblickey.txt -in firmadeldocumento.txt -out filedafirmare.txt
+
+Se il comando va a buon fine non verrà stampato nulla a video e la verifica è corretta.
+------------------------------------------------------------------------------------------------------------------
+Con RSA è possibbile anche firmare l'hash di un documento, ovviamente generiamo prima il valore hash e poi firmiamo quest'ultimo:
+
+openssl sha1 -sign rsaprivatekey.txt -out firmadocumentoHASH.txt filedafirmare.txt
+
+nel file firmadocumentoHASH.txt abbiamo la firma all'hash del documento, come per la firma normale l'utente che riceverà la firma e il messaggio m potrà verificare la validità con il comando di verifica:
+
+openssl sha1 -verify rsapubblickey.txt -signature firmadocumentoHASH.txt filedafirmare.txt
+Verified OK (se va a buon fine otteniamo il seguente risultato in output)
+------------------------------------------------------------------------------------------------------------------
+Oltre ad RSA possiamo effettuare la firma dei documenti anche in DSA
+
+-openssl dsaparm {options} {numbits}
+
+gli argomenti/parametri possono essere:
+{option}
+-> -inform arg: Formato di input, dove arg può essere DER o PEM
+-> -outform arg: Formato di output, dove arg può essere DER o PEM
+-> -in arg: Dove arg è il file di input
+-> -out arg: Dove arg è il file di output
+
+Andiamo prima a generarci i parametri DSA che useremo poi per la firma:
+
+openssl dsaparam -out parametriDSA.txt 1024
+
+otteniamo così il file parametriDSA.txt contenente
+"-----BEGIN DSA PARAMETERS-----
+MIIBHgKBgQCQJXjCGX7eKN/8OWCIeYLMFTWv801u3Ii5cxM0Q88jq2Jd93lyPEzU
+MgJmuqXGxlNua+gJ3oRbM58Xz8igcoS+oM7o8sekIT/HFehvxAqRSBiS46EnBb2W
+lvwdFISavUs7izgHgYJcj+NO/fJ28RkosEvJPX5uwjYoBYhCKgRhiwIVANRx3zvs
+Va6dxbIu12yZoZgQjjfdAoGANca3eMhcsVyLPoocU4vGpS8zqLKmphu2X79ikjKi
+3RiUfrZUK+ohj6OrCS0puSUCiHTBxU4/h8YlO7mAPmVuQaJ5OWm5vXuzz4ckzxtA
+giWvkmHd0zFqVAm+D1vk3t4ro0VtctR+ooNx9VJAkM9BE/Z0FGkd3tr4K2qEEmBo
+to8=
+-----END DSA PARAMETERS-----"
+
+Con questi parametri andiamo a generarci la coppia di chiavi che useremo per ottenere la firma e verificare la firma, quindi la chiave pubblica e privata, nella creazione delle chiavi ci verrà richiesta una pass PEM ovviamente è la password che verrà usata per la codifica:
+
+openssl gendsa -out privatekeydsa.txt -des3 parametriDSA.txt
+Generating DSA key, 1024 bits
+Enter PEM pass phrase: (coppiachiavi)
+Verifying - Enter PEM pass phrase:(coppiachiavi)
+
+otteniamo così la chiave privata nel file privatekeydsa.txt contenente:
+-----BEGIN DSA PRIVATE KEY-----
+Proc-Type: 4,ENCRYPTED
+DEK-Info: DES-EDE3-CBC,5D3C34D8E17AFF91
+
+lljeGrzzzMc/fMUpa2ekI5CpT4Xp/yTJ2b963t8O1/wDdCzagZh9+3icJld7s1i4
+N1+cvi2OoTAR3TLwwiSfjxIwKWy095se4DvwN9ck2jl3CaK4FhMIA28WN2Xm8RGC
+aFkuhX9w+03y1n4gxpdrdx2Q887hldMq2Gwqt2v2qG2HVE/GhlsnlAcCxxp41F52
+hlXsLAtie+6FkVHSUgxaSeT6Ekoxk1QiXiLfTQxJ0Bc8/2xUw+brdcN9iVeyTHBL
+EnAURtP2GA8y88/QMNAKxu1/tSvKfl7JRHLcb1w+qlTrfgHLUGcnOsExt3qSKriA
+MWYMQqFyKXw4W1Ilrb18LuGF5o9GWbUQzJW9xuOAl2rH1+k+wzOtGD8UlqlZqgS3
+5xRDuoj35r8qitmyiZJc3KAEJCM/Gsp9qLMRzMazD3zf8CnRJI4aTR8L0CRM1HQK
+O7Yl584W21OZbVs4mfmmAIAYR7Hlicsfsd8+cy0ja+in+4ggIZxcKEexENtVknvA
+TtLUkxSHMUENxo5hL8OyS3sz69ljqqnqmXI3bQvlx0ILYCY+LPolfIhN5wHgYWN6
+8W+EEkuZFP2OKzB8Nsra7g==
+-----END DSA PRIVATE KEY---
+
+Estraiamo la chiave pubblica da quella privata che ci servirà per la verifica della firma
+
+openssl dsa -in privatekeydsa.txt -pubout -out pubblickeydsa.txt
+read DSA key
+Enter pass phrase for privatekeydsa.txt: (coppiachiavi)
+writing DSA key
+
+otteniamo così la chiave pubblica nel file pubblickeydsa.txt
+-----BEGIN PUBLIC KEY-----
+MIIBtDCCASsGByqGSM44BAEwggEeAoGBAJAleMIZft4o3/w5YIh5gswVNa/zTW7c
+iLlzEzRDzyOrYl33eXI8TNQyAma6pcbGU25r6AnehFsznxfPyKByhL6gzujyx6Qh
+P8cV6G/ECpFIGJLjoScFvZaW/B0UhJq9SzuLOAeBglyP40798nbxGSiwS8k9fm7C
+NigFiEIqBGGLAhUA1HHfO+xVrp3Fsi7XbJmhmBCON90CgYA1xrd4yFyxXIs+ihxT
+i8alLzOosqamG7Zfv2KSMqLdGJR+tlQr6iGPo6sJLSm5JQKIdMHFTj+HxiU7uYA+
+ZW5Bonk5abm9e7PPhyTPG0CCJa+SYd3TMWpUCb4PW+Te3iujRW1y1H6ig3H1UkCQ
+z0ET9nQUaR3e2vgraoQSYGi2jwOBggACfxngEKhxhg7VgEcq9SvcLdBlYvB8E+GI
+yCEASfhT1AWuhXINUEs4+uVMqH2CVhZ+vIpLF73ZOqNtf3rwHzBSv62tdGcG3Cmn
+ZNHeJXzjnwW0AhY9zm6kVCzoGWJRFmoxiWOk4Air6E/3pgA+caat46wCwzNmdaG9
+o7QeAyLbND8=
+-----END PUBLIC KEY-----
+
+Andiamo ora a firmare il documento con la chiave ottenuta ed effettuiamo anche la verifica:
+
+openssl dgst -sha1 -sign privatekeydsa.txt -out firmaDSA.txt filedafirmare.txt
+Enter pass phrase for privatekeydsa.txt:(coppiachiavi)
+
+Se il comando va a buon fine otteniamo il file firmaDSA.txt contenente la firma del documento:
+"0,jÿ-á¾£ëì×Slrèa{/þõ^.ðA»Ûwp"
+
+Ora verifichiamo il documento e la firma
+
+openssl dgst -sha1 -verify pubblickeydsa.txt -signature firmaDSA.txt filedafirmare.txt 
+Verified OK
+

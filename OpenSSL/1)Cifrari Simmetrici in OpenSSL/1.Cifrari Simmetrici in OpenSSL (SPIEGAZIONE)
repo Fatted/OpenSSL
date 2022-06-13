@@ -1,0 +1,87 @@
+I crittosistemi a chiave privata sono dei cifrari dove Bob ed Alice condividono la stessa chiave K.
+Possiamo avere due tipologie di crittosistemi a chiave privata:
+(il messaggio M è una sequenza di bit)
+
+1)Cifrari simmetrici,dove M viene prima diviso in blocchi e poi cifrato ogni singolo blocco;
+ 
+2)Stream Chiper, dove M viene cifrati carattere per carattere;
+
+I cifrari a blocchi consistono nel prendere in input un messaggio di lunghezza n bit, cifrarlo attraverso un cifrario che prende in input una chiave K ed otteniamo in output un testo cifrato di lunghezza n bit. Un esempio di cifrario a blocchi può essere il DES o DES triplo.
+
+Per conoscere tutti i cifrari che supporta il nostro OpenSSL si digita il comando openssl list --cipher-commands,(per i comandi io uso la versione kali linux) il ciphername è composto da al più 3 parti separate da un trattino ‘-’
+- Nome del Cifrario
+- Lunghezza della Chiave (in bit)
+- Modalità Operativa
+
+es. aes-256-cbc
+
+Ciascun cifrario chiede una chiave,k, per effettuare cifratura e decifratura.
+-------------------------------------------------------------------------------------------------------------------
+OpenSSL
+Il comando enc ci permette di accere ai cifrari simmetrici messi a disposizione da OpenSSL
+
+- OpenSSL enc {args}
+
+gli argomenti/parametri possono essere:
+->ciphername: Tipo di cifrario, lunghezza della chiave e modalità operativa
+->in filename: file di input
+->out filename: file di output che generiamo
+->e or d (encript or decpript): se vogliamo fare cifratura o decifratura
+->k: che indica la chiave usata per cifrare e decifrare
+->pass: sorgente della password
+->base64: applichiamo al codifica in base64 prima o dopo le operazioni crittografiche
+
+[Base64]
+Processa i file di input in blocchi da 24bit, prende in input un messaggio ad esempio MAN, ogni singola lettere viene trasormata in ASCII e poi il valore ASCII in binario ovvero MAN->77|97|110->01001101|01100001|01101110 poi ogni singolo blocco di bit (in questo caso abbiamo 3 blocchi da 8 bit) viene diviso a gruppi da 6 bit quindi 4 gruppi da 6 bit ottenendo 010011|010110|000101|101110 poi ogni singolo blocco da 6 bit viene convertito da binario a decimale ottenendo i valori 19|22|5|46 che poi quest'ultimi verranno codificati in base64 dove ad ogni valore decimale corrisponde un carattere o simbolo in base 64 in questo caso otteniamo TWFu. Se il numero totale di bit da processare non è un multiplo di 24 allora viene utilizzato il padding, vengono inseriti bit nulli (0) alla fine. Nella codifica viene inserito il simbolo ‘=‘ per ogni gruppo di 6 bit che manca per creare un blocco da 24 bit.
+
+[Base64 Openssl]
+Creiamo un file di nome CifraInBase64.txt contenente il seguente messaggio "Cifra questo messaggio in base64."
+eseguiamo il comando:
+
+openssl enc -base64 -in CifraInBase64.txt -out TestoCifratoInBase64.txt 
+
+se il comando andrà a buon fine ci verrà creato un file di nome TestoCifratoInBase64.txt contenente "Q2lmcmEgcXVlc3RvIG1lc3NhZ2dpbyBpbiBiYXNlNjQu"
+
+per effettuare la decifratura eseguiamo lo stesso comando ma con l'aggiunta del parametro -d ed indichiamo come file di input TestoCifratoInBase64.txt, il risultato può essere stampato sul cmd senza specificare il file di output.
+
+openssl enc -base64 -d -in TestoCifratoInBase64.txt
+
+e otteniamo a schermo il messaggio "Cifra questo messaggio in base64."
+-------------------------------------------------------------------------------------------------------------------
+[Cifratura Simmetrica in Openssl]
+Come cifrario per la cifratura simmetrica useremo il cifrario AES-256-CBC.
+
+Iniziamo con il creare un nuovo documento chiamato Fileinchiaro.txt contenente "Cifra questo file con la cifratura simmetrica e il cifrario aes-256-cbc"
+Eseguiamo il comando per la cifratura:
+
+openssl enc -aes-256-cbc -e -in Fileinchiaro.txt -out Filecifrato.txt -pass pass:kpriv
+
+se il comando va a buon fine otteniamo in output il file Filecifrato.txt contenente:
+"慓瑬摥彟꣎ឆꦉ韫ᚯ傓霴঩饖倬鶌쉈ᡕ䀅蠉댖鴏㴪ㆌO术ք࿩摟숮⚲穣燣靘ᇞ啬楤顙Ვꉲ괞"
+
+Per ottenere la decifratura basterà effettuare il comando di prima ma prendendo in input il file di output quindi Filecifrato.txt ed indicare la decifratura al posto della cifratura con il parametro -d, il comando è:
+
+openssl enc -aes-256-cbc -d -in Filecifrato.txt -pass pass:kpriv
+
+se il comando va a buon fine otteniamo lo stesso messaggio che c'è nel file Fileinchiaro.txt, ovviamente per effettuare la decifratura bisogna conoscere il valore della chiave passata come parametro in -pass, la nostra chiave privata K era kpriv.
+Usando il comando per la cifratura visto sopra, otteniamo la cifratura del messaggio con dei simboli che non sono in base64 e che quindi non riusciamo a capire, possiamo combinare al comando di prima il parametro -base64 per ottenere una cifratura simmetrica con aes-256-cbc con codifica in base64.
+Usando sempre lo stesso file di prima e lo stesso comando, aggiungiamo il parametro -base64:
+
+openssl enc -aes-256-cbc -e -in Fileinchiaro.txt -out Filecifrato+Base64.txt -pass pass:kpriv -base64
+
+otteniamo in outpu il file Filecifrato+Base64.txt contenente il testo del file Fileinchiaro.txt cifrato con il cifrario aes-256-cbc con chiave k=kpriv e codificato in base64, e il messaggio al suo interno è:
+"U2FsdGVkX1+70VyJSyZLZ9uAeAmuJbVkFgk0jsV/6AcicHkI3DG/27pyyPUyPCld
+tNv9wQfeSeHHCCJqpR/xVJb0i0rG2VNBAYaaD7GSNRHqQR4+xog78B7cHaYC3/c0"
+
+Per effettuare la decifratura si effettua il comando usato anche in precedenza però specificando la decifratura in base64 e usando ovviamente il -d al posto del -e per indicare la decript:
+
+openssl enc -aes-256-cbc  -d -in Filecifrato+Base64.txt -pass pass:kpriv -base64
+
+se il comando andrà a buon fine verrà stampato il contenuto del file Filecifrato+Base64.txt a schermo.
+
+
+
+
+
+
+

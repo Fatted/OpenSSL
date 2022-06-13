@@ -1,0 +1,57 @@
+Una TSA, Time Spamping Autority certifica l'esistenza di un determinato documento prima di uno specifico istante temporale. Il comand che viene usato in openssl per la TSA è il ts. Il time-stamping autority opera nel seguente modo:
+
+1. Il client TSA calcola il valore hash di un documento e lo manda alla TSA;
+
+2. La TSA riceve il valore hash, concatena la data e l'ora al valore hash ricevuto,ed effettua il calcolo del valore hash (hash_documento+Data_e_ora),questo valore hash verrà firmato con la chiave privata del TSA. La TSA manda al client il timestamp e il valore hash combinato firmato.Con la creazione del timestamp, la TSA certifica l'esistenza del file al momento della generazione della risposta;
+
+3. Il client TSA,Riceve il timestamp e la relativa firma. Calcola il valore hash del file e del timestamp e li combina, poi con la chiave pubblica della TSA decifra la firma ricevuta dalla TSA e vede se i due valori ottenuti,
+Hashfile+HashTimestamp e decifraturaFirma coincidono.
+-------------------------------------------------------------------------------------------------------------------
+Openssl
+
+D'ora in avanti dobbiamo pensare che cacert.pem è il certificato della CA,tsacert.pem sia il certificato di firma della TSA rilasciato dalla CA e tsakey.pem sia la chiave privata della TSA.
+
+Andiamo a creare la struttura della TSA, creando la cartella TSA contenente la cartella private e il file tsaserial.
+
+mkdir TSA
+cd TSA
+mkdir private
+chmod g-rwx,o-rwx private
+echo '01' > tsaserial
+
+Apportiamo delle modifiche al file openssl.cnf (Usare il file presente direttamente nella cartella).La TSA genera la richiesta di certificato e la invia alla CA:
+
+openssl req -new -out tsa-req.pem -keyout private/tsakey.pem -days 365 -extensions v3_tsa -config ./openssl.cnf
+
+Verrà richiesta una password, useremo "sicurezza" e poi andiamo a compilare tutti i campi della richiesta.
+La CA genera il certificato per la TSA e lo invia a quest’ultima:
+
+openssl ca -out tsacert.pem -extensions v3_tsa -config ./openssl.cnf -in tsa-req.pem
+
+RICORDA DI COMPILARE TUTTI I CAMPI NELLA RICHIESTA!! (COPIARE I FILE SERIAL,CERTINDEX,OPENSSL.CNF, CACERT.PEM E IN PRIVATE LE CHIAVI ALTRIMENTI IL COMANDO NON TROVA I FILE!)
+
+Il comando ts permette di implementare tutte le funzionalità di una TSA:
+1.Generazione di una Timestamp Request relativa ad un file (client)
+openssl ts –query
+
+2.Generazione di una Timestamp Response in base ad una richiesta
+openssl ts –reply
+
+3.Verifica della corrispondenza tra una risposta ed una particolare richiesta o un determinato file
+openssl ts -verify
+-------------------------------------------------------------------------------------------------------------------
+creiamo un file filetimestamprequest.txt ed effetuiamo una richiesta di timestamp da parte del client con il comando ts -query:
+
+openssl ts -query -data filetimestamprequest.txt -out filetimestamprequest.tsq
+
+per vedere il contenuto della richiesta effettuiamo il comando:
+
+openssl ts -query -in filetimestamprequest.tsq -text
+
+Adesso andiamo a generare una risposta alla richiesta timestamp usando il comando -reply:
+
+openssl ts -reply -config ./openssl.cnf -queryfile filetimestamprequest.tsq -inkey private/tsakey.pem -signer tsacert.pem -out filetimestampresponse.tsr
+
+Dopo aver ottenuto il file di risposta possiamo effettuare la verifica con il comando di -verify:
+
+openssl ts -verify -queryfile filetimestamprequest.tsq -in filetimestampresponse.tsr -CAfile cacert.pem -untrusted tsacert.pem
